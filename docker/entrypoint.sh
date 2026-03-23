@@ -31,7 +31,7 @@ run_sync() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting sync job..."
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] =========================================="
     
-    python3 /app/sync_videos.py 2>&1 | while IFS= read -r line; do
+    python3 -u /app/sync_videos.py 2>&1 | while IFS= read -r line; do
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] $line"
     done
     
@@ -56,7 +56,7 @@ else
     echo "Next run: $target_hour:$target_minute today"
     echo ""
     echo "To view logs: docker logs bd-yt-grabber"
-    echo "To run manually: docker exec bd-yt-grabber python3 /app/sync_videos.py"
+    echo "To run manually: docker exec bd-yt-grabber python3 -u /app/sync_videos.py"
     echo ""
     
     while true; do
