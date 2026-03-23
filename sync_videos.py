@@ -244,9 +244,14 @@ def main():
     
     config = merge_config(file_config, env_config)
     
-    if not config.get("youtube_channel"):
+    youtube_channel = os.environ.get("YOUTUBE_CHANNEL", "")
+    if not youtube_channel:
+        youtube_channel = config.get("youtube_channel", "")
+    if not youtube_channel:
         print("ERROR: YOUTUBE_CHANNEL not set (environment variable or config.json required)")
         sys.exit(1)
+    
+    config["youtube_channel"] = youtube_channel
     
     api_key = get_api_key(file_env, env_config)
     data_dir = config.get("data_dir", "/app/data")
