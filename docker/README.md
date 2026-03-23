@@ -99,10 +99,16 @@ docker push ghcr.io/USERNAME/bd-yt-grabber:latest
 
 ## Usage
 
-### View Logs
+### View Logs (STDOUT)
 
+All logs are sent to STDOUT, which means they appear automatically in:
+
+**Unraid Docker UI:**
+- Go to Docker → Container → **Log** tab
+
+**Command line:**
 ```bash
-docker exec bd-yt-grabber tail -f /var/log/sync.log
+docker logs -f bd-yt-grabber
 ```
 
 ### Run Manually

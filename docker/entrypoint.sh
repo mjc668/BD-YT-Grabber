@@ -38,26 +38,39 @@ echo "=========================================="
 
 CRON_EXPRESSION=$(convert_schedule_to_cron "$SCHEDULE" "$SCHEDULE_TIME")
 
+run_sync_with_logging() {
+    python3 /app/sync_videos.py 2>&1 | while IFS= read -r line; do
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] $line"
+    done
+}
+
 if [ "$SCHEDULE" = "manual" ]; then
     echo "Running in manual mode (no scheduling)..."
     echo "Executing sync script..."
-    python3 /app/sync_videos.py
+    run_sync_with_logging
 else
     echo "Setting up cron: $CRON_EXPRESSION"
-    echo "$CRON_EXPRESSION python3 /app/sync_videos.py >> /var/log/sync.log 2>&1" > /etc/cron.d/bd-yt-grabber
+    
+    cat > /usr/local/bin/run-sync.sh << 'WRAPPER_EOF'
+#!/bin/bash
+python3 /app/sync_videos.py 2>&1 | while IFS= read -r line; do
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $line"
+done
+WRAPPER_EOF
+    chmod +x /usr/local/bin/run-sync.sh
+    
+    echo "$CRON_EXPRESSION /usr/local/bin/run-sync.sh" > /etc/cron.d/bd-yt-grabber
     chmod 0644 /etc/cron.d/bd-yt-grabber
     crontab /etc/cron.d/bd-yt-grabber
-    
-    touch /var/log/sync.log
     
     echo "Starting cron daemon..."
     cron
     
-    echo "Cron scheduled. Next run: $SCHEDULE at $SCHEDULE_TIME"
-    echo "Log file: /var/log/sync.log"
     echo ""
-    echo "To view logs: docker exec <container> tail -f /var/log/sync.log"
-    echo "To run manually: docker exec <container> python3 /app/sync_videos.py"
+    echo "Cron scheduled. Next run: $SCHEDULE at $SCHEDULE_TIME"
+    echo ""
+    echo "To view logs: docker logs bd-yt-grabber"
+    echo "To run manually: docker exec bd-yt-grabber python3 /app/sync_videos.py"
     echo ""
     echo "Container is running. Press Ctrl+C to stop."
     
