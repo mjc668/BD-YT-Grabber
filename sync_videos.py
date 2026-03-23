@@ -37,14 +37,16 @@ def get_config_from_env():
     config = {}
     
     config["youtube_channel"] = os.environ.get("YOUTUBE_CHANNEL", "")
-    config["subtitle_lang"] = os.environ.get("SUBTITLE_LANG", "en")
-    config["download_limit"] = int(os.environ.get("DOWNLOAD_LIMIT", "1"))
+    config["subtitle_lang"] = os.environ.get("SUBTITLE_LANG", "en") or "en"
     
-    playlist_names = os.environ.get("PLAYLIST_NAMES", "VideoPlaylist1,VideoPlaylist2")
+    download_limit = os.environ.get("DOWNLOAD_LIMIT", "1") or "1"
+    config["download_limit"] = int(download_limit)
+    
+    playlist_names = os.environ.get("PLAYLIST_NAMES", "VideoPlaylist1,VideoPlaylist2") or "VideoPlaylist1,VideoPlaylist2"
     config["playlist_names"] = [name.strip() for name in playlist_names.split(",")]
     
-    config["video_dir"] = os.environ.get("VIDEO_DIR", "/app/videos")
-    config["data_dir"] = os.environ.get("DATA_DIR", "/app/data")
+    config["video_dir"] = os.environ.get("VIDEO_DIR", "/app/videos") or "/app/videos"
+    config["data_dir"] = os.environ.get("DATA_DIR", "/app/data") or "/app/data"
     
     return config
 
