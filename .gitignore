@@ -1,0 +1,5 @@
+.env
+downloaded_videos.json
+videos/
+__pycache__/
+*.pyc

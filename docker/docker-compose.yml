@@ -1,0 +1,19 @@
+services:
+  bd-yt-grabber:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: bd-yt-grabber
+    environment:
+      - INFOBEAMER_API_KEY=${INFOBEAMER_API_KEY}
+      - YOUTUBE_CHANNEL=${YOUTUBE_CHANNEL}
+      - PLAYLIST_NAMES=${PLAYLIST_NAMES:-VideoPlaylist1,VideoPlaylist2}
+      - SUBTITLE_LANG=${SUBTITLE_LANG:-en}
+      - DOWNLOAD_LIMIT=${DOWNLOAD_LIMIT:-1}
+      - SCHEDULE=${SCHEDULE:-daily}
+      - SCHEDULE_TIME=${SCHEDULE_TIME:-02:00}
+    volumes:
+      - ./videos:/app/videos
+      - ./data:/app/data
+    restart: unless-stopped
+    timezone: ${TZ:-UTC}

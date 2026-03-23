@@ -1,0 +1,7 @@
+{
+  "youtube_channel": "https://www.youtube.com/user/BerrimaDiesel",
+  "playlist_names": ["VideoPlaylist1", "VideoPlaylist2"],
+  "subtitle_lang": "en",
+  "video_dir": "videos",
+  "download_limit": 2
+}
