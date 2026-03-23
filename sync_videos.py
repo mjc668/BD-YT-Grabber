@@ -77,7 +77,7 @@ def save_tracking(data, data_dir):
 
 
 def get_api_key(file_env, env_config):
-    api_key = env_config.get("INFOBEAMER_API_KEY", "")
+    api_key = os.environ.get("INFOBEAMER_API_KEY", "")
     if not api_key:
         api_key = file_env.get("INFOBEAMER_API_KEY", "")
     
