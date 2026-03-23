@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import json
 import os
 import subprocess
@@ -7,60 +8,39 @@ from pathlib import Path
 
 import requests
 
-CONFIG_FILE = "config.json"
-TRACKING_FILE = "downloaded_videos.json"
-ENV_FILE = ".env"
-
 API_BASE = "https://info-beamer.com/api/v1"
 
 
-def load_config():
-    if os.path.exists(CONFIG_FILE):
-        with open(CONFIG_FILE) as f:
-            return json.load(f)
-    return {}
-
-
-def load_env():
-    env = {}
-    if os.path.exists(ENV_FILE):
-        with open(ENV_FILE) as f:
-            for line in f:
-                line = line.strip()
-                if line and "=" in line:
-                    key, value = line.split("=", 1)
-                    env[key] = value
-    return env
-
-
-def get_config_from_env():
-    config = {}
+def parse_args():
+    parser = argparse.ArgumentParser(description="BD-YT-Grabber - YouTube to info-beamer sync")
     
-    config["youtube_channel"] = os.environ.get("YOUTUBE_CHANNEL", "")
-    config["subtitle_lang"] = os.environ.get("SUBTITLE_LANG", "en") or "en"
+    parser.add_argument("--api-key", dest="api_key", 
+                        help="info-beamer API key (or set INFOBEAMER_API_KEY env var)")
+    parser.add_argument("--channel", dest="channel", 
+                        help="YouTube channel URL (or set YOUTUBE_CHANNEL env var)")
+    parser.add_argument("--playlists", dest="playlists", 
+                        default="VideoPlaylist1,VideoPlaylist2",
+                        help="Comma-separated playlist names (default: VideoPlaylist1,VideoPlaylist2)")
+    parser.add_argument("--subtitle-lang", dest="subtitle_lang", default="en",
+                        help="Subtitle language (default: en)")
+    parser.add_argument("--download-limit", dest="download_limit", type=int, default=1,
+                        help="Number of videos to download per run (default: 1)")
+    parser.add_argument("--video-dir", dest="video_dir", default="/app/videos",
+                        help="Directory for downloaded videos (default: /app/videos)")
+    parser.add_argument("--data-dir", dest="data_dir", default="/app/data",
+                        help="Directory for tracking data (default: /app/data)")
     
-    download_limit = os.environ.get("DOWNLOAD_LIMIT", "1") or "1"
-    config["download_limit"] = int(download_limit)
+    args = parser.parse_args()
     
-    playlist_names = os.environ.get("PLAYLIST_NAMES", "VideoPlaylist1,VideoPlaylist2") or "VideoPlaylist1,VideoPlaylist2"
-    config["playlist_names"] = [name.strip() for name in playlist_names.split(",")]
+    args.api_key = args.api_key or os.environ.get("INFOBEAMER_API_KEY", "")
+    args.channel = args.channel or os.environ.get("YOUTUBE_CHANNEL", "")
+    args.playlists = args.playlists or os.environ.get("PLAYLIST_NAMES", "VideoPlaylist1,VideoPlaylist2")
+    args.subtitle_lang = args.subtitle_lang or os.environ.get("SUBTITLE_LANG", "en")
+    args.download_limit = args.download_limit or int(os.environ.get("DOWNLOAD_LIMIT", "1") or "1")
+    args.video_dir = args.video_dir or os.environ.get("VIDEO_DIR", "/app/videos")
+    args.data_dir = args.data_dir or os.environ.get("DATA_DIR", "/app/data")
     
-    config["video_dir"] = os.environ.get("VIDEO_DIR", "/app/videos") or "/app/videos"
-    config["data_dir"] = os.environ.get("DATA_DIR", "/app/data") or "/app/data"
-    
-    return config
-
-
-def get_api_key_from_env():
-    return os.environ.get("INFOBEAMER_API_KEY", "")
-
-
-def merge_config(file_config, env_config):
-    merged = file_config.copy()
-    for key, value in env_config.items():
-        if value and value != "" and value != 0:
-            merged[key] = value
-    return merged
+    return args
 
 
 def load_tracking(data_dir):
@@ -76,17 +56,6 @@ def save_tracking(data, data_dir):
     tracking_path.parent.mkdir(parents=True, exist_ok=True)
     with open(tracking_path, "w") as f:
         json.dump(data, f, indent=2)
-
-
-def get_api_key(file_env, env_config):
-    api_key = os.environ.get("INFOBEAMER_API_KEY", "")
-    if not api_key:
-        api_key = file_env.get("INFOBEAMER_API_KEY", "")
-    
-    if not api_key:
-        print("ERROR: INFOBEAMER_API_KEY not set (environment variable or .env file required)")
-        sys.exit(1)
-    return api_key
 
 
 def get_youtube_videos(channel_url):
@@ -107,11 +76,9 @@ def get_youtube_videos(channel_url):
     return video_ids
 
 
-def download_video(video_id, config):
-    video_dir = Path(config.get("video_dir", "/app/videos"))
+def download_video(video_id, video_dir, subtitle_lang):
+    video_dir = Path(video_dir)
     video_dir.mkdir(parents=True, exist_ok=True)
-    
-    sub_lang = config.get("subtitle_lang", "en")
     
     print(f"Downloading video {video_id}...")
     
@@ -119,7 +86,7 @@ def download_video(video_id, config):
         "yt-dlp",
         "--write-subs",
         "--write-auto-subs",
-        "--sub-lang", sub_lang,
+        "--sub-lang", subtitle_lang,
         "--convert-subs", "srt",
         "-o", str(video_dir / "%(id)s.%(ext)s"),
         f"https://youtube.com/watch?v={video_id}"
@@ -240,34 +207,38 @@ def add_to_playlist(asset_id, playlist_id, api_key):
 
 
 def main():
-    file_config = load_config()
-    file_env = load_env()
-    env_config = get_config_from_env()
+    args = parse_args()
     
-    config = merge_config(file_config, env_config)
-    
-    youtube_channel = os.environ.get("YOUTUBE_CHANNEL", "")
-    if not youtube_channel:
-        youtube_channel = config.get("youtube_channel", "")
-    if not youtube_channel:
-        print("ERROR: YOUTUBE_CHANNEL not set (environment variable or config.json required)")
+    if not args.api_key:
+        print("ERROR: API key not set (use --api-key or set INFOBEAMER_API_KEY env var)")
         sys.exit(1)
     
-    config["youtube_channel"] = youtube_channel
+    if not args.channel:
+        print("ERROR: YouTube channel not set (use --channel or set YOUTUBE_CHANNEL env var)")
+        sys.exit(1)
     
-    api_key = get_api_key(file_env, env_config)
-    data_dir = config.get("data_dir", "/app/data")
+    playlist_names = [name.strip() for name in args.playlists.split(",")]
     
-    tracking = load_tracking(data_dir)
+    print("=" * 50)
+    print("BD-YT-Grabber")
+    print("=" * 50)
+    print(f"Channel: {args.channel}")
+    print(f"Playlists: {playlist_names}")
+    print(f"Download limit: {args.download_limit}")
+    print(f"Video dir: {args.video_dir}")
+    print(f"Data dir: {args.data_dir}")
+    print("=" * 50)
+    
+    tracking = load_tracking(args.data_dir)
     downloaded_ids = set(tracking.get("downloaded", []))
     pending_ids = set(tracking.get("pending", []))
     
-    video_ids = get_youtube_videos(config["youtube_channel"])
+    video_ids = get_youtube_videos(args.channel)
     
     all_known = downloaded_ids | pending_ids
     new_videos = [vid for vid in video_ids if vid not in all_known]
     
-    limit = config.get("download_limit", 1)
+    limit = args.download_limit
     videos_to_process = list(pending_ids)[:limit]
     
     if len(videos_to_process) < limit:
@@ -284,11 +255,11 @@ def main():
         print("No new videos to download")
         return
     
-    playlists = get_playlists(api_key)
+    playlists = get_playlists(args.api_key)
     print(f"Found playlists: {list(playlists.keys())}")
     
     target_playlists = []
-    for name in config.get("playlist_names", ["VideoPlaylist1", "VideoPlaylist2"]):
+    for name in playlist_names:
         if name in playlists:
             target_playlists.append((name, playlists[name]))
         else:
@@ -297,20 +268,20 @@ def main():
     for video_id in videos_to_process:
         print(f"\n--- Processing {video_id} ---")
         
-        video_file = download_video(video_id, config)
+        video_file = download_video(video_id, args.video_dir, args.subtitle_lang)
         if not video_file:
             continue
         
-        asset_id = upload_to_infobeamer(video_file, api_key)
+        asset_id = upload_to_infobeamer(video_file, args.api_key)
         if not asset_id:
             remaining = [v for v in videos_to_process if v != video_id]
             tracking["pending"] = list(set(pending_ids) | set(remaining))
-            save_tracking(tracking, data_dir)
+            save_tracking(tracking, args.data_dir)
             print("Upload failed, will retry remaining on next run")
             return
         
         for playlist_name, playlist_id in target_playlists:
-            if add_to_playlist(asset_id, playlist_id, api_key):
+            if add_to_playlist(asset_id, playlist_id, args.api_key):
                 print(f"Added to playlist '{playlist_name}'")
         
         downloaded_ids.add(video_id)
@@ -318,7 +289,7 @@ def main():
         if video_id in pending_ids:
             pending_ids.remove(video_id)
             tracking["pending"] = list(pending_ids)
-        save_tracking(tracking, data_dir)
+        save_tracking(tracking, args.data_dir)
     
     print("\nDone!")
 

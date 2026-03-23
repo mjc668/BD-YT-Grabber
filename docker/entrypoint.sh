@@ -4,6 +4,14 @@ set -e
 SCHEDULE="${SCHEDULE:-daily}"
 SCHEDULE_TIME="${SCHEDULE_TIME:-02:00}"
 
+INFOBEAMER_API_KEY="${INFOBEAMER_API_KEY:-}"
+YOUTUBE_CHANNEL="${YOUTUBE_CHANNEL:-}"
+PLAYLIST_NAMES="${PLAYLIST_NAMES:-VideoPlaylist1,VideoPlaylist2}"
+SUBTITLE_LANG="${SUBTITLE_LANG:-en}"
+DOWNLOAD_LIMIT="${DOWNLOAD_LIMIT:-1}"
+VIDEO_DIR="${VIDEO_DIR:-/app/videos}"
+DATA_DIR="${DATA_DIR:-/app/data}"
+
 convert_schedule_to_cron() {
     local schedule="$1"
     local time="$2"
@@ -35,34 +43,34 @@ echo "BD-YT-Grabber"
 echo "=========================================="
 echo "Schedule: $SCHEDULE at $SCHEDULE_TIME"
 echo "=========================================="
-
-CRON_EXPRESSION=$(convert_schedule_to_cron "$SCHEDULE" "$SCHEDULE_TIME")
+echo ""
 
 if [ "$SCHEDULE" = "manual" ]; then
     echo "Running in manual mode..."
-    /usr/local/bin/python3 -u /app/sync_videos.py
+    /usr/local/bin/python3 -u /app/sync_videos.py \
+        --api-key "$INFOBEAMER_API_KEY" \
+        --channel "$YOUTUBE_CHANNEL" \
+        --playlists "$PLAYLIST_NAMES" \
+        --subtitle-lang "$SUBTITLE_LANG" \
+        --download-limit "$DOWNLOAD_LIMIT" \
+        --video-dir "$VIDEO_DIR" \
+        --data-dir "$DATA_DIR"
 else
-    echo "Setting up cron: $CRON_EXPRESSION"
+    CRON_EXPRESSION=$(convert_schedule_to_cron "$SCHEDULE" "$SCHEDULE_TIME")
     
-    cat > /usr/local/bin/run-sync.sh << 'RUNNEREOF'
-#!/bin/bash
-export INFOBEAMER_API_KEY="${INFOBEAMER_API_KEY}"
-export YOUTUBE_CHANNEL="${YOUTUBE_CHANNEL}"
-export PLAYLIST_NAMES="${PLAYLIST_NAMES}"
-export SUBTITLE_LANG="${SUBTITLE_LANG}"
-export DOWNLOAD_LIMIT="${DOWNLOAD_LIMIT}"
-export VIDEO_DIR="${VIDEO_DIR}"
-export DATA_DIR="${DATA_DIR}"
-export SCHEDULE="${SCHEDULE}"
-export SCHEDULE_TIME="${SCHEDULE_TIME}"
-/usr/local/bin/python3 -u /app/sync_videos.py
-RUNNEREOF
-    chmod +x /usr/local/bin/run-sync.sh
+    echo "Setting up cron: $CRON_EXPRESSION"
     
     cat > /etc/cron.d/bd-yt-grabber << CRONEOF
 SHELL=/bin/bash
 PATH=/usr/local/bin:/usr/bin:/bin
-$CRON_EXPRESSION root /usr/local/bin/run-sync.sh >> /proc/1/fd/1 2>&1
+$CRON_EXPRESSION root /usr/local/bin/python3 -u /app/sync_videos.py \
+    --api-key '$INFOBEAMER_API_KEY' \
+    --channel '$YOUTUBE_CHANNEL' \
+    --playlists '$PLAYLIST_NAMES' \
+    --subtitle-lang '$SUBTITLE_LANG' \
+    --download-limit '$DOWNLOAD_LIMIT' \
+    --video-dir '$VIDEO_DIR' \
+    --data-dir '$DATA_DIR' >> /proc/1/fd/1 2>&1
 CRONEOF
     chmod 0644 /etc/cron.d/bd-yt-grabber
     
@@ -73,7 +81,7 @@ CRONEOF
     echo "Cron scheduled. Next run: $SCHEDULE at $SCHEDULE_TIME"
     echo ""
     echo "To view logs: docker logs bd-yt-grabber"
-    echo "To run manually: docker exec bd-yt-grabber /usr/local/bin/python3 -u /app/sync_videos.py"
+    echo "To run manually: docker exec bd-yt-grabber /usr/local/bin/python3 -u /app/sync_videos.py --api-key '$INFOBEAMER_API_KEY' --channel '$YOUTUBE_CHANNEL'"
     echo ""
     echo "Container is running. Press Ctrl+C to stop."
     
