@@ -40,14 +40,14 @@ CRON_EXPRESSION=$(convert_schedule_to_cron "$SCHEDULE" "$SCHEDULE_TIME")
 
 if [ "$SCHEDULE" = "manual" ]; then
     echo "Running in manual mode..."
-    /usr/bin/python3 -u /app/sync_videos.py
+    /usr/local/bin/python3 -u /app/sync_videos.py
 else
     echo "Setting up cron: $CRON_EXPRESSION"
     
     cat > /etc/cron.d/bd-yt-grabber << CRONEOF
 SHELL=/bin/bash
 PATH=/usr/local/bin:/usr/bin:/bin
-$CRON_EXPRESSION root /usr/bin/python3 -u /app/sync_videos.py >> /proc/1/fd/1 2>&1
+$CRON_EXPRESSION root /usr/local/bin/python3 -u /app/sync_videos.py >> /proc/1/fd/1 2>&1
 CRONEOF
     chmod 0644 /etc/cron.d/bd-yt-grabber
     
@@ -58,7 +58,7 @@ CRONEOF
     echo "Cron scheduled. Next run: $SCHEDULE at $SCHEDULE_TIME"
     echo ""
     echo "To view logs: docker logs bd-yt-grabber"
-    echo "To run manually: docker exec bd-yt-grabber /usr/bin/python3 -u /app/sync_videos.py"
+    echo "To run manually: docker exec bd-yt-grabber /usr/local/bin/python3 -u /app/sync_videos.py"
     echo ""
     echo "Container is running. Press Ctrl+C to stop."
     
