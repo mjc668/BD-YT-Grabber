@@ -44,10 +44,25 @@ if [ "$SCHEDULE" = "manual" ]; then
 else
     echo "Setting up cron: $CRON_EXPRESSION"
     
+    cat > /usr/local/bin/run-sync.sh << 'RUNNEREOF'
+#!/bin/bash
+export INFOBEAMER_API_KEY="${INFOBEAMER_API_KEY}"
+export YOUTUBE_CHANNEL="${YOUTUBE_CHANNEL}"
+export PLAYLIST_NAMES="${PLAYLIST_NAMES}"
+export SUBTITLE_LANG="${SUBTITLE_LANG}"
+export DOWNLOAD_LIMIT="${DOWNLOAD_LIMIT}"
+export VIDEO_DIR="${VIDEO_DIR}"
+export DATA_DIR="${DATA_DIR}"
+export SCHEDULE="${SCHEDULE}"
+export SCHEDULE_TIME="${SCHEDULE_TIME}"
+/usr/local/bin/python3 -u /app/sync_videos.py
+RUNNEREOF
+    chmod +x /usr/local/bin/run-sync.sh
+    
     cat > /etc/cron.d/bd-yt-grabber << CRONEOF
 SHELL=/bin/bash
 PATH=/usr/local/bin:/usr/bin:/bin
-$CRON_EXPRESSION root /usr/local/bin/python3 -u /app/sync_videos.py >> /proc/1/fd/1 2>&1
+$CRON_EXPRESSION root /usr/local/bin/run-sync.sh >> /proc/1/fd/1 2>&1
 CRONEOF
     chmod 0644 /etc/cron.d/bd-yt-grabber
     
