@@ -1,0 +1,16 @@
+{
+  "prompt": "Berrima Diesel is an Australian diesel fuel injection, turbocharger and DPF repair business in Berrima, New South Wales. Their website is berrimadiesel.com. This video discusses diesel engines, DPF cleaning and burn-off, fuel injectors, injector pumps, turbochargers, common rail systems and vehicles including Toyota LandCruiser and HiLux, Nissan Patrol, Mitsubishi Fuso Canter, Isuzu trucks, Ford Ranger, Holden Colorado and Volkswagen Amarok.",
+  "replacements": [
+    ["\\b(?:www\\s+)?(?:berrimadiesel|beramadiesel|berrimadiesel|barimadiesel|berima\\s*diesel|berrima\\s*diesel|barima\\s*diesel|bahrain\\s*diesel|bad\\s*diesel|mary\\s*m(?:ed|ad|id)?eisler|marymedeisler|merry\\s*m[ae]deisler)\\s*(?:\\.|dot)?\\s*com\\b", "berrimadiesel.com"],
+    ["\\b(?:bad|bahrain|bar+im+a|barama|ber+im+a|berima|berreema|bera?ma)\\s+diesel\\b", "Berrima Diesel"],
+    ["\\b(?:mit|mits?ubishi|mistubishi)\\s+f(?:uso|uzzo)\\b", "Mitsubishi Fuso"],
+    ["\\bf(?:uso|uzzo)\\s+(?:caner|canter|cantar|can[dt]er|candor|condor)\\b", "Fuso Canter"],
+    ["\\bland\\s*crui?ser\\b", "LandCruiser"],
+    ["\\bhi\\s*lux\\b", "HiLux"],
+    ["\\b(?:cummins|cummings)\\b", "Cummins"],
+    ["\\bden[sz]o\\b", "Denso"],
+    ["\\bper?kins\\b", "Perkins"],
+    ["\\bdpf\\b", "DPF"],
+    ["\\begr\\b", "EGR"]
+  ]
+}

@@ -3,6 +3,7 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
+    # image: ghcr.io/mjc668/bd-yt-grabber:latest
     container_name: bd-yt-grabber
     environment:
       - INFOBEAMER_API_KEY=${INFOBEAMER_API_KEY}
@@ -10,10 +11,17 @@ services:
       - PLAYLIST_NAMES=${PLAYLIST_NAMES:-VideoPlaylist1,VideoPlaylist2}
       - SUBTITLE_LANG=${SUBTITLE_LANG:-en}
       - DOWNLOAD_LIMIT=${DOWNLOAD_LIMIT:-1}
+      - REPROCESS_LIMIT=${REPROCESS_LIMIT:-1}
+      - WHISPER_MODEL=${WHISPER_MODEL:-distil-large-v3}
+      - WHISPER_DEVICE=${WHISPER_DEVICE:-cpu}
+      - WHISPER_COMPUTE_TYPE=${WHISPER_COMPUTE_TYPE:-int8}
+      - MODELS_DIR=${MODELS_DIR:-/app/models}
+      - GLOSSARY_PATH=${GLOSSARY_PATH:-/app/glossary.json}
       - SCHEDULE=${SCHEDULE:-daily}
       - SCHEDULE_TIME=${SCHEDULE_TIME:-02:00}
     volumes:
       - ./videos:/app/videos
       - ./data:/app/data
+      - ./models:/app/models
     restart: unless-stopped
     timezone: ${TZ:-UTC}

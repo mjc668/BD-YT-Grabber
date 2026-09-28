@@ -1,5 +1,7 @@
 .env
 downloaded_videos.json
 videos/
+models/
+data/
 __pycache__/
 *.pyc
