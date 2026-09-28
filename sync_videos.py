@@ -175,6 +175,7 @@ def transcribe_video(source_path, args, glossary):
         model_dir=args.models_dir,
         language=args.language,
         initial_prompt=glossary.prompt,
+        hotwords=glossary.hotwords,
         on_progress=on_progress,
     )
     cues = subtitles.build_cues(segments, glossary)

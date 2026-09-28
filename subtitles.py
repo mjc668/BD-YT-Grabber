@@ -13,8 +13,9 @@ MEANINGFUL = re.compile(r"[A-Za-z0-9]")
 
 
 class Glossary:
-    def __init__(self, prompt="", replacements=None):
+    def __init__(self, prompt="", replacements=None, hotwords=""):
         self.prompt = prompt
+        self.hotwords = hotwords
         self.replacements = [
             (re.compile(pattern, re.IGNORECASE), replacement)
             for pattern, replacement in (replacements or [])
@@ -31,12 +32,12 @@ def load_glossary(path):
     if not path.exists():
         return Glossary()
     data = json.loads(path.read_text(encoding="utf-8"))
-    return Glossary(data.get("prompt", ""), data.get("replacements", []))
+    return Glossary(data.get("prompt", ""), data.get("replacements", []), data.get("hotwords", ""))
 
 
 def transcribe(audio_path, model_name="distil-large-v3", device="cpu",
                compute_type="int8", model_dir=None, language="en",
-               initial_prompt=None, on_progress=None):
+               initial_prompt=None, hotwords=None, on_progress=None):
     from faster_whisper import WhisperModel
 
     model = WhisperModel(
@@ -53,6 +54,7 @@ def transcribe(audio_path, model_name="distil-large-v3", device="cpu",
         vad_filter=True,
         vad_parameters={"min_silence_duration_ms": 300},
         initial_prompt=initial_prompt or None,
+        hotwords=hotwords or None,
         condition_on_previous_text=False,
     )
 
