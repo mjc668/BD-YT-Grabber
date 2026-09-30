@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import hashlib
 import json
 import os
 import shutil
@@ -363,7 +364,14 @@ def process_video(video_id, args, glossary, target_playlists, old_pipeline=None)
             ass_path.unlink()
 
 
-def select_reprocess_candidates(videos, args):
+def glossary_fingerprint(path):
+    path = Path(path)
+    if not path.exists():
+        return ""
+    return hashlib.sha256(path.read_bytes()).hexdigest()[:12]
+
+
+def select_reprocess_candidates(videos, args, glossary_hash):
     if args.reprocess_video:
         if args.reprocess_video not in videos:
             print(f"WARNING: {args.reprocess_video} is not tracked, cannot reprocess")
@@ -373,6 +381,7 @@ def select_reprocess_candidates(videos, args):
     outdated = [
         video_id for video_id, record in videos.items()
         if record.get("pipeline", 1) < SUBTITLE_PIPELINE_VERSION
+        or record.get("glossary") != glossary_hash
     ]
     outdated.sort(key=lambda video_id: videos[video_id].get("updated") or 0)
 
@@ -410,6 +419,8 @@ def main():
     videos = tracking["videos"]
     pending = list(tracking.get("pending", []))
     glossary = subtitles.load_glossary(args.glossary)
+    glossary_hash = glossary_fingerprint(args.glossary)
+    print(f"Glossary: {args.glossary} ({glossary_hash or 'missing'})")
 
     to_process = pending[: max(0, args.download_limit)]
     if len(to_process) < args.download_limit:
@@ -421,7 +432,7 @@ def main():
         print(f"New videos on channel: {len(new_videos)}")
         to_process.extend(new_videos[: args.download_limit - len(to_process)])
 
-    reprocess = select_reprocess_candidates(videos, args)
+    reprocess = select_reprocess_candidates(videos, args, glossary_hash)
 
     print(f"Already downloaded: {len(videos)}")
     print(f"Pending from last run: {len(pending)}")
@@ -453,6 +464,7 @@ def main():
             "filename": f"{video_id}.mp4",
             "asset_id": asset_id,
             "pipeline": SUBTITLE_PIPELINE_VERSION,
+            "glossary": glossary_hash,
             "in_playlists": in_playlists,
             "updated": int(time.time()),
         }
@@ -484,6 +496,7 @@ def main():
             "filename": f"{video_id}.mp4",
             "asset_id": asset_id,
             "pipeline": SUBTITLE_PIPELINE_VERSION,
+            "glossary": glossary_hash,
             "in_playlists": record.get("in_playlists", True) and in_playlists,
             "updated": int(time.time()),
         })

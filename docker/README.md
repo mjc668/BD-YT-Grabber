@@ -77,8 +77,9 @@ the new version automatically. That makes gradual migration safe.
   videos (oldest first).
 - Old burned files are archived under `videos/archive/<id>.p<version>.mp4`
   before being replaced, so you can roll back by re-uploading them.
-- The tracking file stores a `pipeline` version per video. Bump
-  `SUBTITLE_PIPELINE_VERSION` in `sync_videos.py` after future subtitle changes.
+- The tracking file stores a `pipeline` version and a `glossary` fingerprint per
+  video. Editing `glossary.json` automatically re-queues videos transcribed with
+  the old glossary; bump `SUBTITLE_PIPELINE_VERSION` for code/style changes.
 
 Manual controls:
 
@@ -88,10 +89,17 @@ docker exec bd-yt-grabber /usr/local/bin/python3 -u /app/sync_videos.py \
   --api-key "$INFOBEAMER_API_KEY" --channel "$YOUTUBE_CHANNEL" \
   --reprocess-video pxmIlnhIsLI --download-limit 0
 
-# Re-subtitle everything outdated, no new downloads
+# Re-subtitle everything out of date (pipeline or glossary), no new downloads
 docker exec bd-yt-grabber /usr/local/bin/python3 -u /app/sync_videos.py \
   --api-key "$INFOBEAMER_API_KEY" --channel "$YOUTUBE_CHANNEL" \
   --reprocess-all --download-limit 0
+```
+
+For fast glossary iteration, bind-mount your own file over `/app/glossary.json`
+and edit it on the host; every run reads it fresh, so no image rebuild is needed:
+
+```bash
+-v /mnt/user/appdata/bd-yt-grabber/glossary.json:/app/glossary.json:ro
 ```
 
 ## Deployment on Unraid
