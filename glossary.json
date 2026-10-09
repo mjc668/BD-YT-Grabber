@@ -3,7 +3,9 @@
   "hotwords": "Berrima Diesel, Berrima Diesel Service, Berrima, Berrima NSW, berrimadiesel.com, Reinhard Leimroth, Andrew Leimroth, Trent Leimroth, DP Chip, EFI, DPF, EGR, LandCruiser, HiLux, Mitsubishi Fuso Canter, Nissan Patrol, Cummins, Denso, Bosch, dyno, Taipan, Newton-Meters, aluminized",
   "replacements": [
     ["\\b(?:www\\s+)?(?:m(?:ary|arry|erry)\\s*m(?:ed|ad|id)?eisler|her+[a-z]{0,5}(?:diesel|deisler|diesler)|bear+er?\\s*-?\\s*(?:diesel|deisler|diesler)|bear[a-z]{0,6}(?:diesel|deisler|diesler)|b[ae][rdh][a-z]{0,6}\\s*(?:diesel|deisler|diesler))\\s*(?:\\.|dot)?\\s*com\\b", "berrimadiesel.com"],
+    ["\\b(?:www\\s+)?b[ae][rdh][a-z]{0,6}[\\s-]*d[ie]+s[iea]*l(?:er)?\\s*(?:\\.|dot)?\\s*com\\b", "berrimadiesel.com"],
     ["\\bb[ae][rdh][a-z]{0,6}(?:diesel|deisler|diesler)\\b(?!\\s*(?:\\.|dot)\\s*com\\b)", "Berrima Diesel"],
+    ["\\bb[ae][rdh][a-z]{0,6}[\\s-]*d[ie]+s[iea]*l(?:er)?\\b(?!\\s*(?:\\.|dot)\\s*com\\b)", "Berrima Diesel"],
     ["\\bbear[a-z]{0,6}(?:diesel|deisler|diesler)\\b(?!\\s*(?:\\.|dot)\\s*com\\b)", "Berrima Diesel"],
     ["\\b(?:bearer|beara)\\s*-?\\s*diesel\\b(?!\\s*(?:\\.|dot)\\s*com\\b)", "Berrima Diesel"],
     ["\\bb[ae][rdh][a-z]{0,6}\\s+diesel\\b(?!\\s*(?:\\.|dot)\\s*com\\b)", "Berrima Diesel"],
