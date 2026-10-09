@@ -70,6 +70,7 @@ def main():
         ass_path = out_dir / f"{video_id}.ass"
         sv.subtitles.write_ass(cues, ass_path, sv.OUTPUT_WIDTH, sv.OUTPUT_HEIGHT)
         sv.subtitles.write_srt(cues, captions_dir / f"{video_id}.srt")
+        sv.subtitles.write_transcript(cues, out_dir / f"{video_id}.txt")
         output = out_dir / f"{video_id}.mp4"
         sv.burn_subtitles(source, ass_path, output, out_dir)
         ass_path.rename(captions_dir / f"{video_id}.ass")

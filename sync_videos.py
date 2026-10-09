@@ -330,6 +330,7 @@ def process_video(video_id, args, glossary, target_playlists, old_pipeline=None)
         ass_path = video_dir / f"{video_id}.ass"
         subtitles.write_ass(cues, ass_path, OUTPUT_WIDTH, OUTPUT_HEIGHT)
         subtitles.write_srt(cues, captions_dir / f"{video_id}.srt")
+        subtitles.write_transcript(cues, video_dir / f"{video_id}.txt")
         burn_subtitles(source_path, ass_path, final_path, video_dir)
 
         shutil.move(str(ass_path), str(captions_dir / f"{video_id}.ass"))

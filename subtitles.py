@@ -186,6 +186,15 @@ def write_srt(cues, path):
     return path
 
 
+def format_transcript(cues):
+    return "\n".join(f"[{_timestamp(cue['start'])}] {cue['text']}" for cue in cues)
+
+
+def write_transcript(cues, path):
+    Path(path).write_text(format_transcript(cues) + "\n", encoding="utf-8")
+    return path
+
+
 def _join_words(words):
     text = ""
     for word in words:
@@ -260,3 +269,12 @@ def _srt_time(seconds):
     minutes, remainder = divmod(remainder, 60000)
     secs, milliseconds = divmod(remainder, 1000)
     return f"{hours:02d}:{minutes:02d}:{secs:02d},{milliseconds:03d}"
+
+
+def _timestamp(seconds):
+    total = int(seconds)
+    hours, remainder = divmod(total, 3600)
+    minutes, secs = divmod(remainder, 60)
+    if hours:
+        return f"{hours}:{minutes:02d}:{secs:02d}"
+    return f"{minutes:02d}:{secs:02d}"
