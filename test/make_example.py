@@ -40,7 +40,7 @@ def main():
     cli = parse_args()
     out_dir = Path(cli.out_dir)
     data_dir = out_dir / "data"
-    captions_dir = data_dir / "captions"
+    captions_dir = out_dir / "captions"
     captions_dir.mkdir(parents=True, exist_ok=True)
 
     args = SimpleNamespace(

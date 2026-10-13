@@ -303,7 +303,7 @@ def add_to_playlist(asset_id, playlist_id, api_key):
 
 def process_video(video_id, args, glossary, target_playlists, old_pipeline=None):
     video_dir = Path(args.video_dir)
-    captions_dir = Path(args.data_dir) / "captions"
+    captions_dir = video_dir / "captions"
     video_dir.mkdir(parents=True, exist_ok=True)
     captions_dir.mkdir(parents=True, exist_ok=True)
 
@@ -330,7 +330,7 @@ def process_video(video_id, args, glossary, target_playlists, old_pipeline=None)
         ass_path = video_dir / f"{video_id}.ass"
         subtitles.write_ass(cues, ass_path, OUTPUT_WIDTH, OUTPUT_HEIGHT)
         subtitles.write_srt(cues, captions_dir / f"{video_id}.srt")
-        subtitles.write_transcript(cues, video_dir / f"{video_id}.txt")
+        subtitles.write_transcript(cues, captions_dir / f"{video_id}.txt")
         burn_subtitles(source_path, ass_path, final_path, video_dir)
 
         shutil.move(str(ass_path), str(captions_dir / f"{video_id}.ass"))

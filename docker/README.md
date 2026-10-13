@@ -9,7 +9,7 @@ styled subtitles, and uploads to info-beamer.
 - Transcribes audio locally with faster-whisper (no YouTube auto-captions)
 - Corrects business terms via `glossary.json` (e.g. Berrima Diesel, berrimadiesel.com)
 - Burns clean, styled subtitles (installed Roboto font, 1080p, max two lines)
-- Saves a plain-text transcript next to each video for easy review
+- Saves transcripts and caption files in `videos/captions/` for easy review
 - Uploads to info-beamer and adds to playlists automatically
 - Gradually re-subtitles existing videos, replacing assets in place
 - Configurable scheduling (daily/weekly/monthly/manual)
@@ -46,8 +46,8 @@ styled subtitles, and uploads to info-beamer.
 
 | Container Path | Host Path | Purpose |
 |---------------|-----------|---------|
-| `/app/videos` | `./videos` | Burned videos, `<id>.txt` transcripts, `archive/` backups |
-| `/app/data` | `./data` | `downloaded_videos.json` tracking, `captions/` |
+| `/app/videos` | `./videos` | Burned videos, `captions/` (txt/srt/ass), `archive/` backups |
+| `/app/data` | `./data` | `downloaded_videos.json` tracking |
 | `/app/models` | `./models` | Whisper model cache (downloads on first run) |
 
 ## Subtitle Pipeline
@@ -61,8 +61,8 @@ styled subtitles, and uploads to info-beamer.
 4. Captions are regrouped into sentence-sized cues, max two lines of 42
    characters, then rendered to ASS with a 1920x1080 style
    (Roboto, white with black outline, bottom margin).
-5. A timestamped plain-text transcript is written to `videos/<id>.txt` and the
-   SRT/ASS files to `data/captions/` for review.
+5. A timestamped plain-text transcript plus the SRT and ASS files are written
+   to `videos/captions/` for review.
 6. `ffmpeg` burns the captions and encodes `libx264 -crf 18 -preset veryfast`
    with AAC audio and `+faststart`.
 
@@ -268,8 +268,7 @@ Ensure `INFOBEAMER_API_KEY` and `YOUTUBE_CHANNEL` are set correctly.
 
 Check the logs for `Generated N caption cues`. If the video has no speech
 Whisper returns nothing and the run is skipped. Captions are kept in
-`/app/data/captions/<id>.ass` and `.srt` for inspection, and a plain-text
-transcript in `/app/videos/<id>.txt`.
+`/app/videos/captions/<id>.txt`, `.srt` and `.ass` for inspection.
 
 ### Manual run works but scheduled doesn't
 
