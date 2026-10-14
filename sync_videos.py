@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import time
+import traceback
 from pathlib import Path
 
 import requests
@@ -452,7 +453,9 @@ def main():
 
         try:
             asset_id, in_playlists = process_video(video_id, args, glossary, target_playlists)
-        except PipelineError as error:
+        except Exception as error:
+            if not isinstance(error, PipelineError):
+                traceback.print_exc()
             print(f"ERROR: {error}")
             if video_id not in pending:
                 pending.append(video_id)
@@ -488,7 +491,9 @@ def main():
             asset_id, in_playlists = process_video(
                 video_id, args, glossary, targets, old_pipeline=old_pipeline
             )
-        except PipelineError as error:
+        except Exception as error:
+            if not isinstance(error, PipelineError):
+                traceback.print_exc()
             print(f"ERROR: {error} (will retry on next run)")
             continue
 
