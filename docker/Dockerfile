@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN curl -sL https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp \
     && chmod a+rx /usr/local/bin/yt-dlp
 
-RUN pip install --no-cache-dir requests faster-whisper
+RUN pip install --no-cache-dir requests "faster-whisper==1.2.1" "av<19"
 
 WORKDIR /app
 

@@ -270,6 +270,13 @@ Check the logs for `Generated N caption cues`. If the video has no speech
 Whisper returns nothing and the run is skipped. Captions are kept in
 `/app/videos/captions/<id>.txt`, `.srt` and `.ass` for inspection.
 
+### Transcribe fails with `unexpected keyword argument 'metadata_errors'`
+
+faster-whisper 1.2.1 passes `metadata_errors` to `av.open()`, which PyAV 19
+removed. The image pins `av<19` until a faster-whisper release supports PyAV 19.
+Keep that pin if you install dependencies manually; otherwise every run crashes
+during transcription and no captions are written.
+
 ### Manual run works but scheduled doesn't
 
 Check cron is running:
