@@ -25,6 +25,10 @@ class PipelineError(Exception):
     pass
 
 
+class NoSpeechError(PipelineError):
+    pass
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="BD-YT-Grabber - YouTube to info-beamer sync")
 
@@ -326,7 +330,9 @@ def process_video(video_id, args, glossary, target_playlists, old_pipeline=None)
         source_path = download_source(video_id, video_dir)
         cues = transcribe_video(source_path, args, glossary)
         if not cues:
-            raise PipelineError("no speech detected")
+            raise NoSpeechError("no speech detected")
+        if subtitles.is_degenerate(cues):
+            raise NoSpeechError("transcript looks like music or noise")
 
         ass_path = video_dir / f"{video_id}.ass"
         subtitles.write_ass(cues, ass_path, OUTPUT_WIDTH, OUTPUT_HEIGHT)
@@ -453,6 +459,23 @@ def main():
 
         try:
             asset_id, in_playlists = process_video(video_id, args, glossary, target_playlists)
+        except NoSpeechError as error:
+            print(f"SKIPPED: {error}")
+            videos[video_id] = {
+                "status": "skipped",
+                "filename": f"{video_id}.mp4",
+                "asset_id": None,
+                "pipeline": SUBTITLE_PIPELINE_VERSION,
+                "glossary": glossary_hash,
+                "in_playlists": False,
+                "updated": int(time.time()),
+                "reason": str(error),
+            }
+            if video_id in pending:
+                pending.remove(video_id)
+                tracking["pending"] = pending
+            save_tracking(tracking, args.data_dir)
+            continue
         except Exception as error:
             if not isinstance(error, PipelineError):
                 traceback.print_exc()
@@ -491,6 +514,17 @@ def main():
             asset_id, in_playlists = process_video(
                 video_id, args, glossary, targets, old_pipeline=old_pipeline
             )
+        except NoSpeechError as error:
+            print(f"SKIPPED: {error}")
+            record.update({
+                "status": "skipped",
+                "pipeline": SUBTITLE_PIPELINE_VERSION,
+                "glossary": glossary_hash,
+                "updated": int(time.time()),
+                "reason": str(error),
+            })
+            save_tracking(tracking, args.data_dir)
+            continue
         except Exception as error:
             if not isinstance(error, PipelineError):
                 traceback.print_exc()

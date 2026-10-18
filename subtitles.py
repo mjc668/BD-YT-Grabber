@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import collections
 import json
 import re
 from pathlib import Path
@@ -119,6 +120,19 @@ def build_cues(segments, glossary=None):
             cue["text"] = glossary.apply(cue["text"])
     cues = [cue for cue in cues if cue["text"]]
     return _merge_short(cues)
+
+
+def is_degenerate(cues):
+    words = re.findall(r"[A-Za-z]+", " ".join(cue["text"] for cue in cues).lower())
+    if len(words) < 3:
+        return True
+    grams = collections.Counter(
+        tuple(words[index:index + 4]) for index in range(len(words) - 3)
+    )
+    if not grams:
+        return False
+    worst = max(grams.values())
+    return worst >= 4 and worst * 20 >= len(words)
 
 
 def wrap_text(text, max_chars=MAX_LINE_CHARS, max_lines=MAX_LINES):

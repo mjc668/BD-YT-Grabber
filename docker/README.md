@@ -83,6 +83,10 @@ the new version automatically. That makes gradual migration safe.
 - The tracking file stores a `pipeline` version and a `glossary` fingerprint per
   video. Editing `glossary.json` automatically re-queues videos transcribed with
   the old glossary; bump `SUBTITLE_PIPELINE_VERSION` for code/style changes.
+- Transcripts that look like music or noise (e.g. music-only Shorts) are
+  detected automatically: nothing is burned or uploaded, and the record becomes
+  `"status": "skipped"` so it is not retried. Force one with
+  `--reprocess-video <id>` if needed.
 
 Manual controls:
 
