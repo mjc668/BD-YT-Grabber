@@ -23,8 +23,17 @@ class Glossary:
 
     def apply(self, text):
         for pattern, replacement in self.replacements:
-            text = pattern.sub(lambda match, value=replacement: value, text)
+            text = pattern.sub(
+                lambda match, value=replacement: _match_case(match.group(0), value),
+                text,
+            )
         return re.sub(r"\s+", " ", text).strip()
+
+
+def _match_case(source, replacement):
+    if source[:1].isupper() and replacement[:1].islower():
+        return replacement[:1].upper() + replacement[1:]
+    return replacement
 
 
 def load_glossary(path):
@@ -89,11 +98,12 @@ def build_cues(segments, glossary=None):
     cues = []
     current = []
     for word in words:
+        attached = word.get("raw", word["word"]).lstrip().startswith("-")
         if current:
             chars = sum(len(item["word"]) + 1 for item in current)
             too_long = chars + len(word["word"]) > MAX_CUE_CHARS
             too_slow = word["end"] - current[0]["start"] > MAX_CUE_DURATION
-            if too_long or too_slow:
+            if (too_long or too_slow) and not attached:
                 cues.append(_make_cue(current))
                 current = []
         current.append(word)
