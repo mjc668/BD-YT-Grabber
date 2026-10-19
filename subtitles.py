@@ -25,14 +25,19 @@ class Glossary:
     def apply(self, text):
         for pattern, replacement in self.replacements:
             text = pattern.sub(
-                lambda match, value=replacement: _match_case(match.group(0), value),
+                lambda match, value=replacement: _match_case(text, match, value),
                 text,
             )
         return re.sub(r"\s+", " ", text).strip()
 
 
-def _match_case(source, replacement):
-    if source[:1].isupper() and replacement[:1].islower():
+def _match_case(text, match, replacement):
+    if not replacement[:1].islower() or "." in replacement:
+        return replacement
+    if not match.group(0)[:1].isupper():
+        return replacement
+    prefix = text[:match.start()].rstrip()
+    if not prefix or prefix.endswith((".", "!", "?")):
         return replacement[:1].upper() + replacement[1:]
     return replacement
 
